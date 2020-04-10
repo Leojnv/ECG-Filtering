@@ -45,7 +45,7 @@ Nx = length(x);
 Px = (abs(x).^2)/(Nx*fs_b);
 f = (0:N_b-1)'*fs_b/Nx;
 subplot(2,1,2)
-x1 = f(1:floor(Nx/2)); %Magintud
+x1 = f(1:floor(Nx/2)); %Magnitud
 y1 = 10*log(Px(1:floor(Nx/2))); %Potencia
 plot(x1,y1)
 title('Caracterización del ruido')
