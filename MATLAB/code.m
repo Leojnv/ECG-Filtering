@@ -55,7 +55,7 @@ hold on
 [peaks,loc] = findpeaks(y1,'MinPeakDistance',1000);
 plot(f(loc),peaks,'or')
 
-%% Diseñando el filtro para la eliminación de ruido de baja frecuencia
+%% Diseñando y aplicando el filtro para la eliminación de ruido de baja frecuencia
 
 B = fir1(10,(1/(fs_b/2)));
 output = filtfilt(B,1,signal_V5);
@@ -65,9 +65,13 @@ plot(time_vector_b,signal_V5)
 xlabel('Tiempo (s)')
 ylabel('Amplitud (mV)')
 legend('Señal V5 Original')
-title('Eliminando ruido de 60 Hz')
+title('Eliminando ruido de baja frecuencia')
 subplot(2,1,2)
 plot(time_vector_b, output)
 legend('Señal V5 filtrada con filtro FIR método de ventana')
 xlabel('Tiempo (s)')
 ylabel('Amplitud (mV)')
+
+%% Diseñando y aplicando el filtro tipo peine para la eliminación de los armónicos de 60 hz
+
+
