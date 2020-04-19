@@ -55,10 +55,10 @@ hold on
 [peaks,loc] = findpeaks(y1,'MinPeakDistance',1000);
 plot(f(loc),peaks,'or')
 
-%% Diseñando y aplicando el filtro para la eliminación de ruido de baja frecuencia
+%% Diseñando y aplicando el filtro pasa bajo para la eliminación de ruido de alta frecuencia
 
-B = fir1(10,(1/(fs_b/2)));
-output = filtfilt(B,1,signal_V5);
+B = fir1(10,(1/(fs_b/2)), 'low');
+output = filtfilt(B,1,signal_V5); 
 figure(2)
 subplot(2,1,1)
 plot(time_vector_b,signal_V5)
@@ -74,4 +74,56 @@ ylabel('Amplitud (mV)')
 
 %% Diseñando y aplicando el filtro tipo peine para la eliminación de los armónicos de 60 hz
 
+N = 6;
+M = 60;
+b = zeros(1, N*M);
+b(1:N:end) = -1/M;
+b(1) = 1 - 1/M;
+output_comb = filter(b,1,output);
 
+figure(3)
+subplot(2,1,1)
+plot(time_vector_b,output)
+xlabel('Tiempo (s)')
+ylabel('Amplitud (mV)')
+legend('Señal V5 filtrada con pasa bajo')
+title('Eliminando ruido estructurado 60 hz')
+subplot(2,1,2)
+plot(time_vector_b, output)
+legend('Filtrado ruido estructurado')
+xlabel('Tiempo (s)')
+ylabel('Amplitud (mV)')
+
+%% Diseñando y aplicando el filtro pasa alto para eliminación de ruido de baja frecuencia
+B = fir1(10,(1/(fs_b/2)), 'high');
+output_final = filtfilt(B,1,output_comb); 
+figure(4)
+subplot(2,1,1)
+plot(time_vector_b,signal_V5)
+xlabel('Tiempo (s)')
+ylabel('Amplitud (mV)')
+legend('Señal V5 Original')
+title('Eliminando ruido de baja frecuencia')
+subplot(2,1,2)
+plot(time_vector_b, output_final)
+legend('Señal V5 filtrada con filtro FIR método de ventana')
+xlabel('Tiempo (s)')
+ylabel('Amplitud (mV)')
+
+%% Utilizando FT y PSD para realizar una caracterización del comportamiento en
+%frecuencia de la señal
+x = fft(output_final);
+Nx = length(x);
+%Calculando potencia
+Px = (abs(x).^2)/(Nx*fs_b);
+f = (0:N_b-1)'*fs_b/Nx;
+figure(5)
+x1 = f(1:floor(Nx/2)); %Magnitud
+y1 = 10*log(Px(1:floor(Nx/2))); %Potencia
+plot(x1,y1)
+title('Caracterización del ruido')
+xlabel('F (Hz)')
+ylabel('Potencia')
+hold on
+[peaks,loc] = findpeaks(y1,'MinPeakDistance',1000);
+plot(f(loc),peaks,'or')
