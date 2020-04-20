@@ -2,29 +2,29 @@
 % Bradicardia: 100m del MIT-BIH Arrhythmia Database
 % Fibrilación: 04015m del MIT-BIH Atrial Fibrillation Database
 
-% Bradicardia
-    % Cargado de la señal de Bradicardia
-    load('100m.mat')
-    % En el archivo 100m.info se especifican que hay 2 señales capturadas
-    % en el archivo 100m.mat con una frecuencia de muestreo de 360 Hz y
-    % una ganancia de 200.
-    signal_MLII = val(1,:)/200;
-    signal_V5 = val(2,:)/200; % Se analizará esta señal
-    fs_b = 360;
-    N_b = length(signal_V5);
-    time_vector_b = 1/fs_b : 1/fs_b : (N_b*1/fs_b);
+% Cargado de la señal de Bradicardia
+load('100m.mat')
 
-% Fibrilación
-    % Cargado de la señal de Fibrilación
-    load('04015m.mat')
-    % En el archivo 100m.info se especifican que hay 2 señales capturadas
-    % en el archivo 100m.mat con una frecuencia de muestreo de 250 Hz y
-    % una ganancia de 200.
-    signal_ECG1 = val(1,:)/200;
-    signal_ECG2 = val(2,:)/200; % Se analizará esta señal
-    fs_f = 250;
-    N_f = length(signal_ECG2);
-    time_vector_f = 1/fs_f : 1/fs_f : (N_f*1/fs_f);
+% En el archivo 100m.info se especifican que hay 2 señales capturadas
+% en el archivo 100m.mat con una frecuencia de muestreo de 360 Hz y
+% una ganancia de 200.
+signal_MLII = val(1,:)/200;
+signal_V5 = val(2,:)/200; % Se analizará esta señal
+fs_b = 360;
+N_b = length(signal_V5);
+time_vector_b = 1/fs_b : 1/fs_b : (N_b*1/fs_b);
+
+% Cargado de la señal de Fibrilación
+load('04015m.mat')
+
+% En el archivo 100m.info se especifican que hay 2 señales capturadas
+% en el archivo 100m.mat con una frecuencia de muestreo de 250 Hz y
+% una ganancia de 200.
+signal_ECG1 = val(1,:)/200;
+signal_ECG2 = val(2,:)/200; % Se analizará esta señal
+fs_f = 250;
+N_f = length(signal_ECG2);
+time_vector_f = 1/fs_f : 1/fs_f : (N_f*1/fs_f);
 
 %% Caracterizando las señales mediante FFT para identificar los ruidos
     
@@ -96,11 +96,10 @@
     xlabel('Tiempo (s)')
     ylabel('Amplitud (mV)')
     legend('Señal V5 Original')
-    title('Antes de eliminar ruido de alta frecuencia')
+    title('Eliminando ruido de alta frecuencia')
     subplot(2,2,3)
     plot(time_vector_b, output_b)
     legend('Señal V5 filtro pasa bajo')
-    title('Luego de eliminar ruido de alta frecuencia')
     xlabel('Tiempo (s)')
     ylabel('Amplitud (mV)')
 
@@ -111,11 +110,10 @@
     xlabel('Tiempo (s)')
     ylabel('Amplitud (mV)')
     legend('Señal ECG2 Original')
-    title('Antes de eliminar ruido de alta frecuencia')
+    title('Eliminando ruido de alta frecuencia')
     subplot(2,2,4)
     plot(time_vector_f, output_f)
     legend('Señal ECG2 filtro pasa bajo')
-    title('Luego de eliminar ruido de alta frecuencia')
     xlabel('Tiempo (s)')
     ylabel('Amplitud (mV)')
 
@@ -161,93 +159,36 @@
 
 %% Diseñando y aplicando el filtro pasa alto para eliminación de ruido de baja frecuencia
 
-% Diseño del filtro
+
     B = fir1(10,(1/(fs_b/2)), 'high');
-   
-    figure(4)
-% Bradicardia
-    output_final_b = filtfilt(B,1,output_comb_b); 
-    subplot(2,2,1)
-    plot(time_vector_b,output_comb_b)
-    xlabel('Tiempo (s)')
-    ylabel('Amplitud (mV)')
-    legend('Señal V5 filtro pasa bajo y tipo peine')
-    title('Antes de eliminar ruido de baja frecuencia')
-    subplot(2,2,3)
-    plot(time_vector_b, output_final_b)
-    legend('Señal V5 filtro pasa bajo, tipo peine y pasa alto')
-    title('Luego de eliminar ruido de baja frecuencia')
-    xlabel('Tiempo (s)')
-    ylabel('Amplitud (mV)')
-
-% Fibrilación
-    output_final_f = filtfilt(B,1,output_comb_f); 
-    subplot(2,2,2)
-    plot(time_vector_f,output_comb_f)
-    xlabel('Tiempo (s)')
-    ylabel('Amplitud (mV)')
-    legend('Señal ECG2 filtro pasa bajo y tipo peine')
-    title('Antes de eliminar ruido de baja frecuencia')
-    subplot(2,2,4)
-    plot(time_vector_f, output_final_f)
-    legend('Señal ECG2 filtro pasa bajo, tipo peine y pasa alto')
-    title('Luego de eliminar ruido de baja frecuencia')
-    xlabel('Tiempo (s)')
-    ylabel('Amplitud (mV)')
-
-%% Caracterizando las señales filtradas mediante FFT
-
-   figure(5)
-% Caracterización Bradicardia
-    % Graficando la señal filtrada
-    subplot(2,2,1)
-    plot(time_vector_b,output_final_b)
-    legend('Señal V5 - Bradicardia - Filtrada')
-    xlabel('Tiempo (s)')
-    ylabel('Amplitud (mV)')
-    title('Señal 100m - 60 segundos')
-
-    %Utilizando FT y PSD para realizar una caracterización del comportamiento en
-    %frecuencia de la señal
-    x = fft(output_final_b);
-    Nx = length(x);
-    %Calculando potencia
-    Px = (abs(x).^2)/(Nx*fs_b);
-    fx = (0:N_b-1)'*fs_b/Nx;
-    subplot(2,2,3)
-    x_x = fx(1:floor(Nx/2));                     %Magnitud
-    x_y = 10*log(Px(1:floor(Nx/2)));             %Potencia
-    plot(x_x,x_y)
-    title('Caracterización de la señal')
-    xlabel('F (Hz)')
-    ylabel('Potencia')
-    hold on
-    [peaks,loc] = findpeaks(x_y,'MinPeakDistance',1000);
-    plot(fx(loc),peaks,'or')
     
-% Caracterización Fibrilación
-    % Graficando la señal filtrada
-    subplot(2,2,2)
-    plot(time_vector_f,output_final_f)
-    legend('Señal ECG2 - Fibrilación - Filtrada')
+    output_final = filtfilt(B,1,output_comb_b); 
+    subplot(2,1,1)
+    plot(time_vector_b,signal_V5)
     xlabel('Tiempo (s)')
     ylabel('Amplitud (mV)')
-    title('Señal 04015m - 60 segundos')
+    legend('Señal V5 Original')
+    title('Eliminando ruido de baja frecuencia')
+    subplot(2,1,2)
+    plot(time_vector_b, output_final)
+    legend('Señal V5 filtrada con filtro FIR método de ventana')
+    xlabel('Tiempo (s)')
+    ylabel('Amplitud (mV)')
 
-    %Utilizando FT y PSD para realizar una caracterización del comportamiento en
-    %frecuencia de la señal
-    y = fft(output_final_f);
-    Ny = length(y);
-    %Calculando potencia
-    Py = (abs(y).^2)/(Ny*fs_f);
-    fy = (0:N_f-1)'*fs_f/Ny;
-    subplot(2,2,4)
-    y_x = fy(1:floor(Ny/2));                     %Magnitud
-    y_y = 10*log(Py(1:floor(Ny/2)));             %Potencia
-    plot(y_x,y_y)
-    title('Caracterización de la señal')
-    xlabel('F (Hz)')
-    ylabel('Potencia')
-    hold on
-    [peaks,loc] = findpeaks(y_y,'MinPeakDistance',1000);
-    plot(fy(loc),peaks,'or')
+%% Utilizando FT y PSD para realizar una caracterización del comportamiento en
+%frecuencia de la señal
+x = fft(output_final);
+Nx = length(x);
+%Calculando potencia
+Px = (abs(x).^2)/(Nx*fs_b);
+f = (0:N_b-1)'*fs_b/Nx;
+figure(5)
+x1 = f(1:floor(Nx/2)); %Magnitud
+y1 = 10*log(Px(1:floor(Nx/2))); %Potencia
+plot(x1,y1)
+title('Caracterización del ruido')
+xlabel('F (Hz)')
+ylabel('Potencia')
+hold on
+[peaks,loc] = findpeaks(y1,'MinPeakDistance',1000);
+plot(f(loc),peaks,'or')
